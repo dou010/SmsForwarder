@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Criteria
-import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -18,7 +17,12 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.CompoundButton
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioGroup
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Observer
@@ -40,8 +44,16 @@ import com.idormy.sms.forwarder.entity.SimInfo
 import com.idormy.sms.forwarder.receiver.BootCompletedReceiver
 import com.idormy.sms.forwarder.service.ForegroundService
 import com.idormy.sms.forwarder.service.LocationService
-import com.idormy.sms.forwarder.utils.*
 import com.idormy.sms.forwarder.utils.AppUtils.getAppPackageName
+import com.idormy.sms.forwarder.utils.CommonUtils
+import com.idormy.sms.forwarder.utils.DataProvider
+import com.idormy.sms.forwarder.utils.EVENT_LOAD_APP_LIST
+import com.idormy.sms.forwarder.utils.KeepAliveUtils
+import com.idormy.sms.forwarder.utils.LocationUtils
+import com.idormy.sms.forwarder.utils.Log
+import com.idormy.sms.forwarder.utils.PhoneUtils
+import com.idormy.sms.forwarder.utils.SettingUtils
+import com.idormy.sms.forwarder.utils.XToastUtils
 import com.idormy.sms.forwarder.widget.GuideTipsDialog
 import com.idormy.sms.forwarder.workers.LoadAppListWorker
 import com.jeremyliao.liveeventbus.LiveEventBus
@@ -58,8 +70,7 @@ import com.xuexiang.xui.widget.picker.widget.listener.OnOptionsSelectListener
 import com.xuexiang.xutil.XUtil
 import com.xuexiang.xutil.XUtil.getPackageManager
 import com.xuexiang.xutil.file.FileUtils
-import kotlinx.coroutines.*
-import java.util.*
+import java.util.Locale
 
 @Suppress("SpellCheckingInspection", "PrivatePropertyName")
 @Page(name = "通用设置")
@@ -68,6 +79,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
     private val TAG: String = SettingsFragment::class.java.simpleName
     private var titleBar: TitleBar? = null
     private val mTimeOption = DataProvider.timePeriodOption
+    private var initViewsFinished = false
 
     //已安装App信息列表
     private val appListSpinnerList = ArrayList<AppListAdapterItem>()
@@ -127,6 +139,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         }
         //免打扰(禁用转发)时间段
         binding!!.tvSilentPeriod.text = mTimeOption[SettingUtils.silentPeriodStart] + " ~ " + mTimeOption[SettingUtils.silentPeriodEnd]
+        binding!!.scbSilentPeriodLogs.isChecked = SettingUtils.enableSilentPeriodLogs
+        binding!!.scbSilentPeriodLogs.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
+            SettingUtils.enableSilentPeriodLogs = isChecked
+        }
 
         //开机启动
         checkWithReboot(binding!!.sbWithReboot, binding!!.tvAutoStartup)
@@ -163,6 +179,8 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         switchDebugMode(binding!!.sbDebugMode)
         //多语言设置
         switchLanguage(binding!!.rgMainLanguages)
+
+        initViewsFinished = true
     }
 
     override fun onResume() {
@@ -520,6 +538,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         layoutLocationSetting.visibility = if (SettingUtils.enableLocation) View.VISIBLE else View.GONE
         sbEnableLocation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             SettingUtils.enableLocation = isChecked
+            layoutLocationSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
             if (isChecked) {
                 XXPermissions.with(this).permission(Permission.ACCESS_COARSE_LOCATION).permission(Permission.ACCESS_FINE_LOCATION).permission(Permission.ACCESS_BACKGROUND_LOCATION).request(object : OnPermissionCallback {
                     override fun onGranted(permissions: List<String>, all: Boolean) {
@@ -542,7 +561,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             } else {
                 restartLocationService("STOP")
             }
-            layoutLocationSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
         }
 
         //设置位置精度：高精度（默认）
@@ -588,28 +606,33 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         //设置位置更新最小时间间隔（单位：毫秒）； 默认间隔：10000毫秒，最小间隔：1000毫秒
         xsbMinInterval.setDefaultValue((SettingUtils.locationMinInterval / 1000).toInt())
         xsbMinInterval.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
-            SettingUtils.locationMinInterval = newValue * 1000L
-            restartLocationService()
+            if (newValue * 1000L != SettingUtils.locationMinInterval) {
+                SettingUtils.locationMinInterval = newValue * 1000L
+                restartLocationService()
+            }
         }
 
         //设置位置更新最小距离（单位：米）；默认距离：0米
         xsbMinDistance.setDefaultValue(SettingUtils.locationMinDistance)
         xsbMinDistance.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
-            SettingUtils.locationMinDistance = newValue
-            restartLocationService()
+            if (newValue != SettingUtils.locationMinDistance) {
+                SettingUtils.locationMinDistance = newValue
+                restartLocationService()
+            }
         }
     }
 
     //重启定位服务
     private fun restartLocationService(action: String = "RESTART") {
+        if (!initViewsFinished) return
         Log.d(TAG, "restartLocationService, action: $action")
         val serviceIntent = Intent(requireContext(), LocationService::class.java)
-        val locationManager = App.context.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
-        val isGpsEnabled = locationManager?.isProviderEnabled(LocationManager.GPS_PROVIDER) == true
-        if (!isGpsEnabled && SettingUtils.enableLocation) {
-            XToastUtils.error(getString(R.string.toast_gps_not_enabled))
+        //如果定位功能已启用，但是系统定位功能不可用，则关闭定位功能
+        if (SettingUtils.enableLocation && (!LocationUtils.isLocationEnabled(App.context) || !LocationUtils.hasLocationCapability(App.context))) {
+            XToastUtils.error(getString(R.string.toast_location_not_enabled))
             SettingUtils.enableLocation = false
             binding!!.sbEnableLocation.isChecked = false
+            binding!!.layoutLocationSetting.visibility = View.GONE
             serviceIntent.action = "STOP"
         } else {
             serviceIntent.action = action
@@ -1013,11 +1036,12 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
 
     //多语言设置
     private fun switchLanguage(rgMainLanguages: RadioGroup) {
+        val context = App.context
         rgMainLanguages.check(
-            if (MultiLanguages.isSystemLanguage(requireContext())) {
+            if (MultiLanguages.isSystemLanguage(context)) {
                 R.id.rb_main_language_auto
             } else {
-                when (MultiLanguages.getAppLanguage(requireContext())) {
+                when (MultiLanguages.getAppLanguage(context)) {
                     LocaleContract.getSimplifiedChineseLocale() -> R.id.rb_main_language_cn
                     LocaleContract.getTraditionalChineseLocale() -> R.id.rb_main_language_tw
                     LocaleContract.getEnglishLocale() -> R.id.rb_main_language_en
@@ -1027,35 +1051,49 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         )
 
         rgMainLanguages.setOnCheckedChangeListener { _, checkedId ->
-            // 是否需要重启
+            val oldLang = MultiLanguages.getAppLanguage(context)
+            var newLang = MultiLanguages.getSystemLanguage(context)
+            //SettingUtils.isFlowSystemLanguage = false
             when (checkedId) {
                 R.id.rb_main_language_auto -> {
+                    // 只为了触发onAppLocaleChange
+                    // MultiLanguages.setAppLanguage(context, newLang)
+                    // SettingUtils.isFlowSystemLanguage = true
                     // 跟随系统
-                    MultiLanguages.clearAppLanguage(requireContext())
+                    MultiLanguages.clearAppLanguage(context)
                 }
 
                 R.id.rb_main_language_cn -> {
                     // 简体中文
-                    MultiLanguages.setAppLanguage(requireContext(), LocaleContract.getSimplifiedChineseLocale())
+                    newLang = LocaleContract.getSimplifiedChineseLocale()
+                    MultiLanguages.setAppLanguage(context, newLang)
                 }
 
                 R.id.rb_main_language_tw -> {
                     // 繁体中文
-                    MultiLanguages.setAppLanguage(requireContext(), LocaleContract.getTraditionalChineseLocale())
+                    newLang = LocaleContract.getTraditionalChineseLocale()
+                    MultiLanguages.setAppLanguage(context, newLang)
                 }
 
                 R.id.rb_main_language_en -> {
                     // 英语
-                    MultiLanguages.setAppLanguage(requireContext(), LocaleContract.getEnglishLocale())
+                    newLang = LocaleContract.getEnglishLocale()
+                    MultiLanguages.setAppLanguage(context, newLang)
                 }
             }
 
             // 重启应用
-            XToastUtils.toast(R.string.multi_languages_toast)
-            val intent = Intent(App.context, MainActivity::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            startActivity(intent)
-            requireActivity().finish()
+            Log.d(TAG, "oldLang: $oldLang, newLang: $newLang")
+            if (oldLang.toString() != newLang.toString()) {
+                //CommonUtils.switchLanguage(oldLang, newLang)
+                XToastUtils.toast(R.string.multi_languages_toast)
+                //切换语种后重启APP
+                Thread.sleep(200)
+                val intent = Intent(App.context, MainActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                startActivity(intent)
+                requireActivity().finish()
+            }
         }
     }
 

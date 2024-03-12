@@ -41,10 +41,11 @@
     <string name="menu_help">Help</string>
     <string name="menu_about">About</string>
 
-    <string name="about_app_version">App Version: %s</string>
+    <string name="about_app_version">AppVer: %s</string>
+    <string name="about_app_version_tips" formatted="false">Version Name: %s\nVersion Code: %s\nBuild Time: %s\nGit Commit ID: %s</string>
     <string name="about_cache_size">Cache Size: %s</string>
-    <string name="about_frpc_version">Frpc Version：%s</string>
-    <string name="about_item_wechat_miniprogram">WeChat MiniProgram</string>
+    <string name="about_frpc_version">FrpcVer: %s</string>
+    <string name="about_item_wechat_miniprogram" formatted="false">WeChat MiniProgram</string>
     <string name="about_cache_purged">Cache cleared</string>
     <string name="about_frpc_deleted">Frpc Deleted, App restarting</string>
     <string name="about_copyright">© %1$s PPPSCN All rights reserved.</string>
@@ -210,7 +211,7 @@
     <string name="delete_log_toast">The log entry is deleted.</string>
     <string name="delete_type_log_tips">Are you sure you want to delete all log records for this category?</string>
     <string name="delete_type_log_toast">The category log record has been cleared!</string>
-    <string name="resend_toast">Attempting to resend over the original sending channel</string>
+    <string name="resend_toast">Attempting to resend over the original sender</string>
     <string name="rematch_toast">Rematching rule sending</string>
     <string name="details">Details</string>
     <string name="clear_logs_tips">Are you sure to clear all forwarding logs?</string>
@@ -227,9 +228,11 @@
     <string name="new_sender_first">Please add a new sender and then choose it.</string>
     <string name="new_rule_first">Please add a new rule and then choose it.</string>
     <string name="new_frpc_first">Please add a new frpc and then choose it.</string>
+    <string name="new_task_first">Please add a new task and then choose it.</string>
     <string name="add_sender_first">Please add a sender first.</string>
     <string name="add_rule_first">Please add a rule first.</string>
     <string name="add_frpc_first">Please add a frpc first.</string>
+    <string name="add_task_first">Please add a task first.</string>
     <string name="select_sender">Select Sender</string>
     <string name="rule_tester">Rule tester:</string>
     <string name="test_sim_slot">Test SIM Slot</string>
@@ -436,8 +439,8 @@
     <string name="ssl">SSL</string>
     <!--CloneActivity-->
     <string name="local_ip">Local IP: </string>
-    <string name="operating_instruction">Important Note:\nThis feature is intended solely for personal use in switching between old and new phones. Any consequences arising from illegal use are the user\'s responsibility!\n\nInstructions:\n1. Connect both old and new phones to the same WiFi network (disable AP isolation). If internal network penetration is needed, configure Frpc first.\n2. [Choose One] On the old phone, tap the "Push" button to send this device\'s configuration to the server.\n3. [Choose One] On the new phone, tap the "Pull" button to fetch the server\'s configuration to this device.\n\nNotes:\n1. The client and server app versions must match for successful cloning.\n2. Upon successful import, the sending channels and forwarding rules will be entirely replaced, clearing the historical records.\n3. Active requests, keep-alive measures, and personal settings are not included in the cloning scope.\n4. After successful import, it\'s crucial to re-enter the [General Settings] and toggle on the functions you need! (Or manually grant permissions in system settings).</string>
-    <string name="operating_instruction_offline">Important Note:\nThis feature is strictly intended for personal use in switching between old and new phones. Any consequences arising from illegal use are the user\'s responsibility!\n\nNotes:\n1. The exporting and importing apps must have identical versions for one-click cloning to work!\n2. Upon successful import on the new phone, the sending channels and forwarding rules will be entirely replaced, clearing the history records!\n3. Active requests, keep-alive measures, and personal settings are not included in the cloning process.\n4. After a successful import, it\'s crucial to re-enter the [General Settings] and toggle on the functions you need! (Or manually grant permissions in system settings).</string>
+    <string name="operating_instruction">Important Note:\nThis feature is intended solely for personal use in switching between old and new phones. Any consequences arising from illegal use are the user\'s responsibility!\n\nInstructions:\n1. Connect both old and new phones to the same WiFi network (disable AP isolation). If internal network penetration is needed, configure Frpc first.\n2. [Choose One] On the old phone, tap the "Push" button to send this device\'s configuration to the server.\n3. [Choose One] On the new phone, tap the "Pull" button to fetch the server\'s configuration to this device.\n\nNotes:\n1. The client and server app versions must match for successful cloning.\n2. Upon successful import, the senders and forwarding rules will be entirely replaced, clearing the historical records.\n3. Active requests, keep-alive measures, and personal settings are not included in the cloning scope.\n4. After successful import, it\'s crucial to re-enter the [General Settings] and toggle on the functions you need! (Or manually grant permissions in system settings).</string>
+    <string name="operating_instruction_offline">Important Note:\nThis feature is strictly intended for personal use in switching between old and new phones. Any consequences arising from illegal use are the user\'s responsibility!\n\nNotes:\n1. The exporting and importing apps must have identical versions for one-click cloning to work!\n2. Upon successful import on the new phone, the senders and forwarding rules will be entirely replaced, clearing the history records!\n3. Active requests, keep-alive measures, and personal settings are not included in the cloning process.\n4. After a successful import, it\'s crucial to re-enter the [General Settings] and toggle on the functions you need! (Or manually grant permissions in system settings).</string>
     <string name="push">Push</string>
     <string name="pull">Pull</string>
     <string name="stop">Stop</string>
@@ -589,7 +592,7 @@
     <string name="seconds_n">%s sec</string>
     <string name="retry">Retry</string>
     <string name="retry_label">Max Retries</string>
-    <string name="test_sender_sms">[%s] Congratulations, the sending channel test is successful, please continue to add forwarding rules!</string>
+    <string name="test_sender_sms">[%s] Congratulations, the sender test is successful, please continue to add forwarding rules!</string>
     <string name="test_sender_name">Test Channel</string>
     <string name="test_sim_info" tools:ignore="Typos">SIM1_TestOperator_18888888888</string>
     <string name="keep_reminding">Keep Reminding</string>
@@ -604,9 +607,10 @@
     <string name="rule">Rule: </string>
     <string name="time">Time: </string>
     <string name="result">Result:</string>
-    <string name="success">success</string>
-    <string name="failed">failed</string>
-    <string name="processing">In the processing…</string>
+    <string name="original_result">Ori. Result:</string>
+    <string name="success">Success</string>
+    <string name="failed">Failed</string>
+    <string name="processing">Processing</string>
     <string name="tag_from">{{FROM}}</string>
     <string name="tag_sms">{{SMS}}</string>
     <string name="tag_package_name">{{PACKAGE_NAME}}</string>
@@ -622,11 +626,16 @@
     <string name="tag_scheme">{{SCHEME}}</string>
     <string name="tag_call_type">{{CALL_TYPE}}</string>
     <string name="tag_location">{{LOCATION}}</string>
+    <string name="tag_location_longitude">{{LOCATION_LONGITUDE}}</string>
+    <string name="tag_location_latitude">{{LOCATION_LATITUDE}}</string>
+    <string name="tag_location_address">{{LOCATION_ADDRESS}}</string>
     <string name="tag_battery_pct">{{BATTERY_PCT}}</string>
     <string name="tag_battery_status">{{BATTERY_STATUS}}</string>
     <string name="tag_battery_plugged">{{BATTERY_PLUGGED}}</string>
     <string name="tag_battery_info">{{BATTERY_INFO}}</string>
     <string name="tag_uid">{{UID}}</string>
+    <string name="tag_ipv4">{{IPV4}}</string>
+    <string name="tag_ipv6">{{IPV6}}</string>
     <string name="rule_sms">SMS</string>
     <string name="rule_call">CALL</string>
     <string name="rule_app">APP</string>
@@ -728,9 +737,11 @@
     <string name="tip_can_not_get_sim_info">The SIM card information in the card slot %s has not been obtained</string>
     <string name="add">Add</string>
     <string name="auto_check">Auto check</string>
-    <string name="check_update">Check update</string>
-    <string name="clear_cache">Clear cache</string>
-    <string name="delete_frpc">Delete Frpc</string>
+    <string name="check_update">Check</string>
+    <string name="join_preview_program">Join Preview Program</string>
+    <string name="join_preview_program_tips">Check out weekly builds of SmsF for early access to new features and bug fixes</string>
+    <string name="clear_cache">Clear</string>
+    <string name="delete_frpc">Delete</string>
 
     <string name="sender_name_status">Channel Name/Status</string>
     <string name="choose_sender_status">Send Channel/Status</string>
@@ -817,13 +828,14 @@
     <string name="header_value">Value</string>
     <string name="header_add">Add header</string>
     <string name="header_del">Del header</string>
-    <string name="select_sender_type">Please select send channel type</string>
+    <string name="select_sender_type">Please select sender type</string>
     <string name="feishu_webhook_hint">Group Robot → Webhook Address</string>
     <string name="feishu_secret_hint">Group Robot → Security Settings → Signature Verification</string>
     <string name="pushplus_token_hint">Please go to the corresponding official website to obtain</string>
     <string name="choose_rule">Drop-down selection, keyword fuzzy match</string>
     <string name="choose_sender">Drop-down selection, keyword fuzzy match</string>
     <string name="choose_frpc">Drop-down selection, keyword fuzzy match</string>
+    <string name="choose_task">Drop-down selection, keyword fuzzy match</string>
     <string name="choose_app">Installed Apps</string>
     <string name="extra_app">Extra Apps</string>
     <string name="extra_app_hint">One package name per line\nEnable async loading of the App list for selection.</string>
@@ -971,15 +983,17 @@
     <string name="disabled_on_the_server">Disable this feature on the server</string>
     <string name="frpc_failed_to_run">Frpc failed to run</string>
     <string name="successfully_deleted">Successfully deleted</string>
-    <string name="sender_disabled_tips">[Note] The sending channel has been disabled, and its associated rules will not be sent even if they match!</string>
+    <string name="sender_disabled_tips">[Note] The sender has been disabled, and its associated rules will not be sent even if they match!</string>
     <string name="rule_disabled_tips">[Note] The rule has been disabled, will not be sent even if they match!</string>
-    <string name="sender_contains_tips">[Note] The sending channel is already in the list, no need to add it again!</string>
+    <string name="sender_contains_tips">[Note] The sender is already in the list, no need to add it again!</string>
     <string name="rule_contains_tips">[Note] The rule is already in the list, no need to add it again!</string>
     <string name="frpc_contains_tips">[Note] The frpc is already in the list, no need to add it again!</string>
+    <string name="task_contains_tips">[Note] The task is already in the list, no need to add it again!</string>
     <string name="local_call">Local Call:</string>
     <string name="remote_sms">Remote SMS：</string>
     <string name="clear">Clear</string>
     <string name="storage_permission_tips">Unauthorized storage permission, this function cannot be used!</string>
+    <string name="write_settings_permission_tips">Unauthorized write settings permission, this function cannot be used!</string>
     <string name="contact_info" formatted="false">Name：%s\nPhone：%s</string>
     <string name="card_slot_does_not_match">Card slot does not match the rule</string>
     <string name="unmatched_rule">Unmatched rule</string>
@@ -1036,6 +1050,7 @@
     <string name="select_time_period">Select Time Period</string>
     <string name="silent_time_period">Disable FW. Period</string>
     <string name="silent_time_period_tips">If the end time is less than the start time, it will span days; if it is equal, it will be disabled</string>
+    <string name="silent_time_period_logs">Save Logs</string>
     <string name="download_frpc_tips">Do you want to download and restart to load!</string>
     <string name="download_frpc_tips2">Download successful, do you want to restart the loading now?</string>
     <string name="appkey">AppKey</string>
@@ -1056,9 +1071,11 @@
     <string name="wol_port_error">Port number value range: 1~65535</string>
     <string name="wol_port_regex" tools:ignore="TypographyDashes">^([0-9]|[1-9]\\d|[1-9]\\d{2}|[1-9]\\d{3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])$</string>
     <string name="select_directory">Select Dir</string>
+    <string name="select_file">Select File</string>
     <string name="web_client">Web Client</string>
     <string name="restarting_httpserver">Restarting HttpServer</string>
     <string name="download_first">Download and unzip to:\n%s</string>
+    <string name="download_music_first">Download music file to:\n%s</string>
     <string name="root_directory">Root Directory:\n%s</string>
     <string name="select_web_client_directory">Select WebClient Directory</string>
     <string name="invalid_feishu_app_parameter">AppId/AppSecret/UserId cannot be empty</string>
@@ -1185,12 +1202,21 @@
     <string name="task_http_server_tips">Manage HttpServer start/stop and enable/disable functions</string>
     <string name="task_cleaner">Cleaner</string>
     <string name="task_cleaner_tips">Delete FW. logs older than N days, delete cache, etc.</string>
+    <string name="task_cleaner_desc">Delete FW. logs older than %s days, delete cache, etc.</string>
     <string name="task_settings">Settings</string>
     <string name="task_settings_tips">Control the configuration switch of "Settings".</string>
     <string name="task_rule">Rules On/Off</string>
-    <string name="task_rule_tips">Control enabling/disabling of "Forwarding Rules"</string>
+    <string name="task_rule_tips">Control the enable/disable of "Rules"</string>
     <string name="task_sender">Channels On/Off</string>
-    <string name="task_sender_tips">Control enabling/disabling of "Sending Channels"</string>
+    <string name="task_sender_tips">Control the enable/disable of "Senders"</string>
+    <string name="task_alarm">Alarm</string>
+    <string name="task_alarm_tips">Alarm</string>
+    <string name="task_resend">Resend Message</string>
+    <string name="task_resend_tips">Resend forwarded records since N hours ago, 0=ALL</string>
+    <string name="task_resend_desc" formatted="false">Resend forwarding records since %s hours ago for %s</string>
+    <string name="task_resend_error">At least one "Original Result" must be selected</string>
+    <string name="task_task">Tasks On/Off</string>
+    <string name="task_task_tips">Control the enable/disable of the "Auto Task"</string>
 
     <string name="second">Second</string>
     <string name="minute">Minute</string>
@@ -1268,6 +1294,10 @@
     <string name="time_after_screen_off_description">%sAfter Screen Off</string>
     <string name="time_after_screen_on">Time After Screen On (Minutes)</string>
     <string name="time_after_screen_on_description">%sAfter Screen On</string>
+    <string name="time_after_screen_locked">Time After Screen Locked (Minutes)</string>
+    <string name="time_after_screen_locked_description">%sAfter Screen Locked</string>
+    <string name="time_after_screen_unlocked">Time After Screen Unlocked (Minutes)</string>
+    <string name="time_after_screen_unlocked_description">%sAfter Screen Unlocked</string>
     <string name="duration_minute">%s minutes </string>
 
     <string name="calc_type_distance">Calculate distance based on GPS coordinates.</string>
@@ -1302,6 +1332,8 @@
     <string name="specified_rule_hint">Enter Rule IDs (comma-separated)</string>
     <string name="specified_sender">Specified Sender</string>
     <string name="specified_sender_hint">Enter Sender IDs (comma-separated)</string>
+    <string name="specified_task">Specified Task</string>
+    <string name="specified_task_hint">Enter Task IDs (comma-separated)</string>
 
     <string name="current_language">English</string>
     <string name="current_activity_language">Current Activity language: </string>
@@ -1340,5 +1372,17 @@
     <string name="union_id">Union ID</string>
     <string name="chat_id">Chat ID</string>
     <string name="receive_id">Receive ID</string>
-    <string name="toast_gps_not_enabled">GPS is not enabled, please enable GPS first!</string>
+    <string name="toast_location_not_enabled">Location is not enabled, Please go to system settings and activate it.</string>
+    <string name="task_condition_check_again">Recheck when delaying execution.</string>
+    <string name="task_condition_check_again_tips">When used as a triggering condition, recheck during delayed action execution.</string>
+
+    <string name="start_alarm">Start Alarm</string>
+    <string name="stop_alarm">Stop Alarm</string>
+    <string name="alarm_play_settings">Playback Settings</string>
+    <string name="alarm_music">Specify Music</string>
+    <string name="alarm_music_tips">Optional, download mp3/ogg/wav to the Download directory.</string>
+    <string name="alarm_volume">Alarm Volume</string>
+    <string name="alarm_play_times">Play Times(0=Infinite)</string>
+
+    <string name="invalid_tag">%s tag is invalid: %s</string>
 </resources>

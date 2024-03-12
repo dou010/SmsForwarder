@@ -42,9 +42,10 @@
     <string name="menu_about">关于软件</string>
 
     <string name="about_app_version">软件版本：%s</string>
+    <string name="about_app_version_tips" formatted="false">版本名称：%s\n版本代码：%s\n构建时间：%s\nGit提交ID：%s</string>
     <string name="about_cache_size">缓存大小：%s</string>
     <string name="about_frpc_version">Frpc版本：%s</string>
-    <string name="about_item_wechat_miniprogram">微信小程序</string>
+    <string name="about_item_wechat_miniprogram" formatted="false">微信小程序</string>
     <string name="about_cache_purged">已清理缓存</string>
     <string name="about_frpc_deleted">已删除动态库，重启APP以便生效！</string>
     <string name="about_copyright">© %1$s PPPSCN All rights reserved.</string>
@@ -228,9 +229,11 @@
     <string name="new_sender_first">请选择发送通道（若无，请先添加）</string>
     <string name="new_rule_first">请选择发送通道（若无，请先添加）</string>
     <string name="new_frpc_first">请选择发送通道（若无，请先添加）</string>
+    <string name="new_task_first">请选择自动任务（若无，请先添加）</string>
     <string name="add_sender_first">请先去设置发送通道页面添加</string>
     <string name="add_rule_first">请先去设置转发规则页面添加</string>
     <string name="add_frpc_first">请先去设置FRPC页面添加</string>
+    <string name="add_task_first">请先去设置自动任务页面添加</string>
     <string name="select_sender">发送通道</string>
     <string name="rule_tester">转发规则测试</string>
     <string name="test_sim_slot">测试模拟的接收卡槽</string>
@@ -605,29 +608,35 @@
     <string name="rule">规则：</string>
     <string name="time">时间：</string>
     <string name="result">转发结果：</string>
+    <string name="original_result">原转发状态：</string>
     <string name="success">成功</string>
     <string name="failed">失败</string>
     <string name="processing">处理中</string>
-    <string name="tag_from">{{来源号码}}</string>
-    <string name="tag_sms">{{短信内容}}</string>
-    <string name="tag_package_name">{{APP包名}}</string>
-    <string name="tag_app_name">{{APP名称}}</string>
-    <string name="tag_msg">{{通知内容}}</string>
-    <string name="tag_card_slot">{{卡槽信息}}</string>
-    <string name="tag_card_subid">{{卡槽主键}}</string>
-    <string name="tag_receive_time">{{接收时间}}</string>
-    <string name="tag_current_time">{{当前时间}}</string>
-    <string name="tag_device_name">{{设备名称}}</string>
-    <string name="tag_app_version">{{当前应用版本号}}</string>
-    <string name="tag_title">{{通知标题}}</string>
-    <string name="tag_scheme">{{通知Scheme}}</string>
-    <string name="tag_call_type">{{通话类型}}</string>
-    <string name="tag_location">{{定位信息}}</string>
-    <string name="tag_battery_pct">{{电池电量}}</string>
-    <string name="tag_battery_status">{{电池状态}}</string>
-    <string name="tag_battery_plugged">{{充电方式}}</string>
-    <string name="tag_battery_info">{{电池信息}}</string>
+    <string name="tag_from">{{FROM}}</string>
+    <string name="tag_sms">{{SMS}}</string>
+    <string name="tag_package_name">{{PACKAGE_NAME}}</string>
+    <string name="tag_app_name">{{APP_NAME}}</string>
+    <string name="tag_msg">{{MSG}}</string>
+    <string name="tag_card_slot">{{CARD_SLOT}}</string>
+    <string name="tag_card_subid">{{CARD_SUBID}}</string>
+    <string name="tag_receive_time">{{RECEIVE_TIME}}</string>
+    <string name="tag_current_time">{{CURRENT_TIME}}</string>
+    <string name="tag_device_name">{{DEVICE_NAME}}</string>
+    <string name="tag_app_version">{{APP_VERSION}}</string>
+    <string name="tag_title">{{TITLE}}</string>
+    <string name="tag_scheme">{{SCHEME}}</string>
+    <string name="tag_call_type">{{CALL_TYPE}}</string>
+    <string name="tag_location">{{LOCATION}}</string>
+    <string name="tag_location_longitude">{{LOCATION_LONGITUDE}}</string>
+    <string name="tag_location_latitude">{{LOCATION_LATITUDE}}</string>
+    <string name="tag_location_address">{{LOCATION_ADDRESS}}</string>
+    <string name="tag_battery_pct">{{BATTERY_PCT}}</string>
+    <string name="tag_battery_status">{{BATTERY_STATUS}}</string>
+    <string name="tag_battery_plugged">{{BATTERY_PLUGGED}}</string>
+    <string name="tag_battery_info">{{BATTERY_INFO}}</string>
     <string name="tag_uid">{{UID}}</string>
+    <string name="tag_ipv4">{{IPV4}}</string>
+    <string name="tag_ipv6">{{IPV6}}</string>
     <string name="rule_sms">短信</string>
     <string name="rule_call">来电</string>
     <string name="rule_app">应用</string>
@@ -730,6 +739,8 @@
     <string name="add">添加</string>
     <string name="auto_check">启动时检查</string>
     <string name="check_update">检查更新</string>
+    <string name="join_preview_program">加入SmsF预览体验计划</string>
+    <string name="join_preview_program_tips">检查SmsF每周构建版更新，率先体验新功能与Bug修复</string>
     <string name="clear_cache">清理缓存</string>
     <string name="delete_frpc">删除动态库</string>
 
@@ -825,6 +836,7 @@
     <string name="choose_rule">下拉选择，关键字模糊匹配</string>
     <string name="choose_sender">下拉选择，关键字模糊匹配</string>
     <string name="choose_frpc">下拉选择，关键字模糊匹配</string>
+    <string name="choose_task">下拉选择，关键字模糊匹配</string>
     <string name="choose_app">已装APP列表</string>
     <string name="extra_app">额外消除应用通知</string>
     <string name="extra_app_hint">一行一个包名\n开启异步加载App列表以便选择</string>
@@ -977,10 +989,12 @@
     <string name="sender_contains_tips">【注意】该发送通道已经在列表中，无需重复添加！</string>
     <string name="rule_contains_tips">【注意】该转发规则已经在列表中，无需重复添加！</string>
     <string name="frpc_contains_tips">【注意】该Frpc已经在列表中，无需重复添加！</string>
+    <string name="task_contains_tips">【注意】该自动任务已经在列表中，无需重复添加！</string>
     <string name="local_call">本地呼叫：</string>
     <string name="remote_sms">远程发短信：</string>
     <string name="clear">清除</string>
     <string name="storage_permission_tips">未授权储存权限，该功能无法使用！</string>
+    <string name="write_settings_permission_tips">未授权修改系统设置权限，该功能无法使用！</string>
     <string name="contact_info" formatted="false">姓名：%s\n号码：%s</string>
     <string name="card_slot_does_not_match">卡槽未匹配中规则</string>
     <string name="unmatched_rule">未匹配中规则</string>
@@ -1037,6 +1051,7 @@
     <string name="select_time_period">时间段选择</string>
     <string name="silent_time_period">免打扰(禁用转发)时间段</string>
     <string name="silent_time_period_tips">结束时间小于开始则跨天；相等则禁用</string>
+    <string name="silent_time_period_logs">记录日志</string>
     <string name="download_frpc_tips">是否立即下载，并重启加载？</string>
     <string name="download_frpc_tips2">下载成功，是否立即重启加载？</string>
     <string name="appkey">AppKey</string>
@@ -1057,9 +1072,11 @@
     <string name="wol_port_error">端口号取值范围：1~65535</string>
     <string name="wol_port_regex" tools:ignore="TypographyDashes">^([0-9]|[1-9]\\d|[1-9]\\d{2}|[1-9]\\d{3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])$</string>
     <string name="select_directory">选择目录</string>
+    <string name="select_file">选择文件</string>
     <string name="web_client">Web客户端</string>
     <string name="restarting_httpserver">正在重启HttpServer</string>
     <string name="download_first">请先下载Web客户端并解压到：\n%s</string>
+    <string name="download_music_first">请先下载音乐文件到：\n%s</string>
     <string name="root_directory">根目录：\n%s</string>
     <string name="select_web_client_directory">选择Web客户端目录</string>
     <string name="invalid_feishu_app_parameter">AppId/AppSecret/UserId都不能为空</string>
@@ -1186,12 +1203,21 @@
     <string name="task_http_server_tips">控制HttpServer的启动/停止，并支持启用/禁用功能</string>
     <string name="task_cleaner">清理日志</string>
     <string name="task_cleaner_tips">批量删除N天前的转发记录、删除缓存等</string>
+    <string name="task_cleaner_desc">批量删除 %s 天前的转发记录、删除缓存等</string>
     <string name="task_settings">通用设置</string>
     <string name="task_settings_tips">控制【通用设置】的配置开关</string>
     <string name="task_rule">启停规则</string>
     <string name="task_rule_tips">控制【转发规则】的启用/禁用</string>
     <string name="task_sender">启停通道</string>
     <string name="task_sender_tips">控制【发送通道】的启用/禁用</string>
+    <string name="task_alarm">声音警报</string>
+    <string name="task_alarm_tips">声音警报</string>
+    <string name="task_resend">重发消息</string>
+    <string name="task_resend_tips">自动重发N小时以来的转发记录，0=全部</string>
+    <string name="task_resend_desc" formatted="false">自动重发%s小时以来%s的转发记录</string>
+    <string name="task_resend_error">必须至少选择一个【原转发状态】</string>
+    <string name="task_task">启停任务</string>
+    <string name="task_task_tips">控制【自动任务】的启用/禁用</string>
 
     <string name="second">秒</string>
     <string name="minute">分</string>
@@ -1265,10 +1291,14 @@
     <string name="sim_1">SIM-1</string>
     <string name="sim_2">SIM-2</string>
 
-    <string name="time_after_screen_off">屏幕锁定后多长时间(分钟)</string>
-    <string name="time_after_screen_off_description">屏幕锁定%s后</string>
-    <string name="time_after_screen_on">屏幕解锁后多长时间(分钟)</string>
-    <string name="time_after_screen_on_description">屏幕解锁%s后</string>
+    <string name="time_after_screen_off">屏幕息屏后多长时间(分钟)</string>
+    <string name="time_after_screen_off_description">屏幕息屏%s后</string>
+    <string name="time_after_screen_on">屏幕开屏后多长时间(分钟)</string>
+    <string name="time_after_screen_on_description">屏幕开屏%s后</string>
+    <string name="time_after_screen_locked">屏幕锁定后多长时间(分钟)</string>
+    <string name="time_after_screen_locked_description">屏幕锁定%s后</string>
+    <string name="time_after_screen_unlocked">屏幕解锁后多长时间(分钟)</string>
+    <string name="time_after_screen_unlocked_description">屏幕解锁%s后</string>
     <string name="duration_minute">%s分钟</string>
 
     <string name="calc_type_distance">根据GPS坐标计算距离</string>
@@ -1303,6 +1333,8 @@
     <string name="specified_rule_hint">填写转发规则的id，多个以半角逗号分隔</string>
     <string name="specified_sender">指定通道</string>
     <string name="specified_sender_hint">填写发送通道的id，多个以半角逗号分隔</string>
+    <string name="specified_task">指定任务</string>
+    <string name="specified_task_hint">填写自动任务的id，多个以半角逗号分隔</string>
 
     <string name="current_language">简体中文</string>
     <string name="current_activity_language">当前 Activity 语种：</string>
@@ -1341,5 +1373,17 @@
     <string name="union_id">Union ID</string>
     <string name="chat_id">Chat ID</string>
     <string name="receive_id">消息接收者ID</string>
-    <string name="toast_gps_not_enabled">GPS未开启，请先开启GPS！</string>
+    <string name="toast_location_not_enabled">位置服务未开启，请先前往系统设置中开启！</string>
+    <string name="task_condition_check_again">延迟执行时再次校验</string>
+    <string name="task_condition_check_again_tips">作为触发条件时，在延迟执行动作时再次校验是否满足</string>
+
+    <string name="start_alarm">启动警报</string>
+    <string name="stop_alarm">停止警报</string>
+    <string name="alarm_play_settings">播放设置</string>
+    <string name="alarm_music">指定音乐</string>
+    <string name="alarm_music_tips">可选，下载 mp3/ogg/wav 到 Download 目录</string>
+    <string name="alarm_volume">播放音量</string>
+    <string name="alarm_play_times">播放次数(0=无限)</string>
+
+    <string name="invalid_tag">%s 标签无效：%s</string>
 </resources>

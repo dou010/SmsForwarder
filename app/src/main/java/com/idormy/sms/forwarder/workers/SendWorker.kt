@@ -6,18 +6,26 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.google.gson.Gson
+import com.idormy.sms.forwarder.R
 import com.idormy.sms.forwarder.core.Core
 import com.idormy.sms.forwarder.database.entity.Logs
 import com.idormy.sms.forwarder.database.entity.Msg
 import com.idormy.sms.forwarder.database.entity.Rule
 import com.idormy.sms.forwarder.entity.MsgInfo
-import com.idormy.sms.forwarder.utils.*
+import com.idormy.sms.forwarder.utils.DataProvider
+import com.idormy.sms.forwarder.utils.HistoryUtils
+import com.idormy.sms.forwarder.utils.Log
+import com.idormy.sms.forwarder.utils.SendUtils
+import com.idormy.sms.forwarder.utils.SettingUtils
+import com.idormy.sms.forwarder.utils.Worker
+import com.xuexiang.xutil.resource.ResUtils
 import com.xuexiang.xutil.security.CipherUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.ParsePosition
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Date
 
 class SendWorker(
     context: Context,
@@ -30,6 +38,7 @@ class SendWorker(
         return withContext(Dispatchers.IO) {
             try {
                 // 免打扰(禁用转发)时间段
+                var isSilentPeriod = false
                 if (SettingUtils.silentPeriodStart != SettingUtils.silentPeriodEnd) {
                     val periodStartDay = Date()
                     var periodStartEnd = Date()
@@ -52,18 +61,20 @@ class SendWorker(
 
                     val now = System.currentTimeMillis()
                     if (periodStart != null && periodEnd != null && now in periodStart..periodEnd) {
-                        Log.e("SendWorker", "免打扰(禁用转发)时间段")
-                        return@withContext Result.failure(workDataOf("send" to "failed"))
+                        if (SettingUtils.enableSilentPeriodLogs) {
+                            isSilentPeriod = true
+                        } else {
+                            Log.e("SendWorker", "免打扰(禁用转发)时间段")
+                            return@withContext Result.failure(workDataOf("send" to "failed"))
+                        }
                     }
                 }
 
-                val msgInfoJson = inputData.getString(Worker.sendMsgInfo)
+                val msgInfoJson = inputData.getString(Worker.SEND_MSG_INFO)
                 val msgInfo = Gson().fromJson(msgInfoJson, MsgInfo::class.java)
 
                 // 过滤重复消息机制
-                var duplicateMessagesLimits = SettingUtils.duplicateMessagesLimits * 1000L
-                // 电池状态监听/网络状态监控 默认开启1秒去重
-                if (duplicateMessagesLimits == 0L && (msgInfo.from == "88888888" || msgInfo.from == "77777777")) duplicateMessagesLimits = 1000L
+                val duplicateMessagesLimits = SettingUtils.duplicateMessagesLimits * 1000L
                 if (duplicateMessagesLimits > 0L) {
                     val key = CipherUtils.md5(msgInfo.type + msgInfo.from + msgInfo.content)
                     val timestamp: Long = System.currentTimeMillis()
@@ -97,6 +108,11 @@ class SendWorker(
                 val msgId = Core.msg.insert(msg)
                 for (rule in ruleListMatched) {
                     val sender = rule.senderList[0]
+                    if (isSilentPeriod) {
+                        val log = Logs(0, msgInfo.type, msgId, rule.id, sender.id, 0, ResUtils.getString(R.string.silent_time_period))
+                        Core.logs.insert(log)
+                        continue
+                    }
                     val log = Logs(0, msgInfo.type, msgId, rule.id, sender.id)
                     val logId = Core.logs.insert(log)
                     SendUtils.sendMsgSender(msgInfo, rule, 0, logId, msgId)

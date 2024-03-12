@@ -207,6 +207,24 @@ class CommonUtils private constructor() {
             PageOption.to(MarkdownFragment::class.java).putString(MarkdownFragment.KEY_MD_TITLE, title).putString(MarkdownFragment.KEY_MD_URL, url).putBoolean(MarkdownFragment.KEY_IS_IMMERSIVE, isImmersive).open(fragment!!)
         }
 
+        //检查自定义模板中的标签是否合法
+        fun checkTemplateTag(template: String): String {
+            val tagRegex = "\\{\\{[^#]+###([^=]+)===(.*?)\\}\\}".toRegex()
+            tagRegex.findAll(template).forEach {
+                try {
+                    it.groupValues[1].toRegex()
+                    //TODO:怎么测试反向引用是否正确？
+                    /*val replacement = it.groupValues[2]
+                    if (replacement.isNotEmpty()) {
+                        "pppscn/SmsForwarder".replace(regex, replacement)
+                    }*/
+                } catch (e: Exception) {
+                    return String.format(getString(R.string.invalid_tag), it.value, e.message)
+                }
+            }
+            return ""
+        }
+
         //是否合法的url
         fun checkUrl(urls: String?): Boolean {
             return checkUrl(urls, false)
@@ -215,7 +233,7 @@ class CommonUtils private constructor() {
         //是否合法的url
         fun checkUrl(urls: String?, emptyResult: Boolean): Boolean {
             if (TextUtils.isEmpty(urls)) return emptyResult
-            val regex = "^https?://(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$"
+            val regex = """^(https?://)?(?:www\.)?(?:\[[a-fA-F0-9:]+\]|[a-zA-Z0-9-]+\.?)(?::\d{1,5})?(?:[-a-zA-Z0-9()@:%_\+.~#?&/=\[\]]*)?${'$'}"""
             val pat = Pattern.compile(regex)
             val mat = pat.matcher(urls?.trim() ?: "")
             return mat.matches()
@@ -326,6 +344,39 @@ class CommonUtils private constructor() {
             context.startActivity(mainIntent)
             XUtil.exitApp()
         }
+
+        /*fun switchLanguage(oldLocale: Locale, newLocale: Locale) {
+            val oldLang = if (TAG_LANG.contains(oldLocale.toString())) oldLocale.toString() else "en"
+            val newLang = if (TAG_LANG.contains(newLocale.toString())) newLocale.toString() else "en"
+            Log.i(App.TAG, "switchLanguage: oldLang=$oldLang, newLang=$newLang")
+
+            //替换自定义模板标签
+            var smsTemplate = SettingUtils.smsTemplate
+            //替换Rule.sms_template中的标签
+            var ruleColumn = "sms_template"
+            //替换Sender.json_setting中的标签
+            var senderColumn = "json_setting"
+
+            for (i in TAG_LIST.indices) {
+                val oldTag = TAG_LIST[i][oldLang].toString()
+                val newTag = TAG_LIST[i][newLang].toString()
+                if (oldTag == newTag) continue
+
+                smsTemplate = smsTemplate.replace(oldTag, newTag)
+                ruleColumn = "REPLACE($ruleColumn, '$oldTag', '$newTag')"
+                senderColumn = "REPLACE($senderColumn, '$oldTag', '$newTag')"
+            }
+
+            SettingUtils.smsTemplate = smsTemplate
+
+            val updateRuleSql = "UPDATE Rule SET sms_template = $ruleColumn WHERE sms_template != ''"
+            Log.d(App.TAG, "updateRuleSql: $updateRuleSql")
+            Core.rule.replaceTags(updateRuleSql)
+
+            val updateSenderSql = "UPDATE Sender SET json_setting = $senderColumn WHERE type NOT IN (4, 5, 6, 7, 8, 14)"
+            Log.d(App.TAG, "updateSenderSql: $updateSenderSql")
+            Core.sender.replaceTags(updateSenderSql)
+        }*/
     }
 
     init {

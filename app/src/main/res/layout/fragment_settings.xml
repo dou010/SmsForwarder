@@ -8,7 +8,6 @@
     android:orientation="vertical"
     tools:ignore="TooManyViews">
 
-
     <androidx.core.widget.NestedScrollView style="@style/ScrollViewStyle">
 
         <LinearLayout
@@ -384,7 +383,7 @@
                         style="@style/SwitchButtonStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        tools:ignore="TouchTargetSizeCheck" />
+                        tools:ignore="TouchTargetSizeCheck,DuplicateSpeakableTextCheck" />
 
                 </LinearLayout>
 
@@ -393,8 +392,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="5dp"
-                    android:orientation="vertical"
-                    android:visibility="gone">
+                    android:orientation="vertical">
 
                     <View
                         android:layout_width="match_parent"
@@ -683,7 +681,6 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:checked="true"
                             android:text="@string/user_app"
                             android:textSize="@dimen/text_size_small"
                             tools:ignore="SmallSp" />
@@ -832,13 +829,14 @@
                 style="@style/BarStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical"
                 tools:ignore="RtlSymmetry">
 
                 <LinearLayout
-                    android:layout_width="180dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    tools:ignore="TextSizeCheck">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -848,37 +846,63 @@
                         tools:ignore="RelativeOverlap" />
 
                     <TextView
+                        android:id="@+id/tv_silent_period"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:gravity="center" />
+
+                    <com.xuexiang.xui.widget.button.shadowbutton.RippleShadowShadowButton
+                        android:id="@+id/btn_silent_period"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:gravity="center"
+                        android:padding="3dp"
+                        android:text="@string/select"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/text_size_mini"
+                        app:sb_color_unpressed="@color/colorPrimary"
+                        app:sb_ripple_color="@color/white"
+                        app:sb_ripple_duration="500"
+                        app:sb_shape_type="rectangle"
+                        tools:ignore="PrivateResource,SmallSp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/silent_time_period_tips"
                         android:textSize="@dimen/text_size_mini"
                         tools:ignore="SmallSp" />
 
+                    <com.xuexiang.xui.widget.button.SmoothCheckBox
+                        android:id="@+id/scb_silent_period_logs"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:layout_marginStart="@dimen/config_margin_10dp"
+                        app:scb_color_checked="@color/colorPrimary"
+                        tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="2dp"
+                        android:singleLine="true"
+                        android:text="@string/silent_time_period_logs"
+                        android:textSize="@dimen/text_size_small"
+                        tools:ignore="SmallSp" />
+
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tv_silent_period"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_weight="1"
-                    android:gravity="center" />
-
-                <com.xuexiang.xui.widget.button.shadowbutton.RippleShadowShadowButton
-                    android:id="@+id/btn_silent_period"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:gravity="center"
-                    android:padding="5dp"
-                    android:text="@string/select"
-                    android:textColor="@color/white"
-                    android:textSize="@dimen/text_size_small"
-                    app:sb_color_unpressed="@color/colorPrimary"
-                    app:sb_ripple_color="@color/white"
-                    app:sb_ripple_duration="500"
-                    app:sb_shape_type="rectangle"
-                    tools:ignore="SmallSp,TextContrastCheck,TouchTargetSizeCheck" />
 
             </LinearLayout>
 
@@ -1011,7 +1035,8 @@
             <LinearLayout
                 style="@style/BarStyle.Switch"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -1158,7 +1183,7 @@
             </LinearLayout>
 
             <LinearLayout
-                style="@style/BarStyle.Switch"
+                style="@style/BarStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:baselineAligned="false"
@@ -1536,6 +1561,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:gravity="center_vertical"
                     android:orientation="vertical">
 
                     <TextView
@@ -1679,7 +1705,8 @@
             <LinearLayout
                 style="@style/BarStyle.Switch"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:visibility="gone">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -1782,6 +1809,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
 
                     <TextView
