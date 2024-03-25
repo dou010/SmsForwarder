@@ -42,12 +42,19 @@ import com.idormy.sms.forwarder.core.BaseFragment
 import com.idormy.sms.forwarder.databinding.FragmentSettingsBinding
 import com.idormy.sms.forwarder.entity.SimInfo
 import com.idormy.sms.forwarder.receiver.BootCompletedReceiver
+import com.idormy.sms.forwarder.service.BluetoothScanService
 import com.idormy.sms.forwarder.service.ForegroundService
 import com.idormy.sms.forwarder.service.LocationService
+import com.idormy.sms.forwarder.utils.ACTION_RESTART
+import com.idormy.sms.forwarder.utils.ACTION_START
+import com.idormy.sms.forwarder.utils.ACTION_STOP
+import com.idormy.sms.forwarder.utils.ACTION_UPDATE_NOTIFICATION
 import com.idormy.sms.forwarder.utils.AppUtils.getAppPackageName
+import com.idormy.sms.forwarder.utils.BluetoothUtils
 import com.idormy.sms.forwarder.utils.CommonUtils
 import com.idormy.sms.forwarder.utils.DataProvider
 import com.idormy.sms.forwarder.utils.EVENT_LOAD_APP_LIST
+import com.idormy.sms.forwarder.utils.EXTRA_UPDATE_NOTIFICATION
 import com.idormy.sms.forwarder.utils.KeepAliveUtils
 import com.idormy.sms.forwarder.utils.LocationUtils
 import com.idormy.sms.forwarder.utils.Log
@@ -124,7 +131,9 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         //转发应用通知
         switchEnableAppNotify(binding!!.sbEnableAppNotify, binding!!.scbCancelAppNotify, binding!!.scbNotUserPresent)
 
-        //启用GPS定位功能
+        //发现蓝牙设备服务
+        switchEnableBluetooth(binding!!.sbEnableBluetooth, binding!!.layoutBluetoothSetting, binding!!.xsbScanInterval, binding!!.scbIgnoreAnonymous)
+        //GPS定位功能
         switchEnableLocation(binding!!.sbEnableLocation, binding!!.layoutLocationSetting, binding!!.rgAccuracy, binding!!.rgPowerRequirement, binding!!.xsbMinInterval, binding!!.xsbMinDistance)
         //短信指令
         switchEnableSmsCommand(binding!!.sbEnableSmsCommand, binding!!.etSafePhone)
@@ -309,10 +318,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             }
 
             R.id.btn_export_log -> {
-                // 申请储存权限
                 XXPermissions.with(this)
-                    //.permission(*Permission.Group.STORAGE)
-                    .permission(Permission.MANAGE_EXTERNAL_STORAGE).request(object : OnPermissionCallback {
+                    // 申请储存权限
+                    .permission(Permission.MANAGE_EXTERNAL_STORAGE)
+                    .request(object : OnPermissionCallback {
                         @SuppressLint("SetTextI18n")
                         override fun onGranted(permissions: List<String>, all: Boolean) {
                             try {
@@ -349,11 +358,9 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
     //转发短信
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private fun switchEnableSms(sbEnableSms: SwitchButton) {
-        sbEnableSms.isChecked = SettingUtils.enableSms
         sbEnableSms.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             SettingUtils.enableSms = isChecked
             if (isChecked) {
-                //检查权限是否获取
                 XXPermissions.with(this)
                     // 接收 WAP 推送消息
                     .permission(Permission.RECEIVE_WAP_PUSH)
@@ -364,22 +371,23 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     // 发送短信
                     //.permission(Permission.SEND_SMS)
                     // 读取短信
-                    .permission(Permission.READ_SMS).request(object : OnPermissionCallback {
+                    .permission(Permission.READ_SMS)
+                    .request(object : OnPermissionCallback {
                         override fun onGranted(permissions: List<String>, all: Boolean) {
-                            if (all) {
-                                XToastUtils.info(R.string.toast_granted_all)
-                            } else {
-                                XToastUtils.info(R.string.toast_granted_part)
+                            Log.d(TAG, "onGranted: permissions=$permissions, all=$all")
+                            if (!all) {
+                                XToastUtils.warning(getString(R.string.forward_sms) + ": " + getString(R.string.toast_granted_part))
                             }
                         }
 
                         override fun onDenied(permissions: List<String>, never: Boolean) {
+                            Log.e(TAG, "onDenied: permissions=$permissions, never=$never")
                             if (never) {
-                                XToastUtils.info(R.string.toast_denied_never)
+                                XToastUtils.error(getString(R.string.forward_sms) + ": " + getString(R.string.toast_denied_never))
                                 // 如果是被永久拒绝就跳转到应用权限系统设置页面
                                 XXPermissions.startPermissionActivity(requireContext(), permissions)
                             } else {
-                                XToastUtils.info(R.string.toast_denied)
+                                XToastUtils.error(getString(R.string.forward_sms) + ": " + getString(R.string.toast_denied))
                             }
                             SettingUtils.enableSms = false
                             sbEnableSms.isChecked = false
@@ -387,12 +395,12 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     })
             }
         }
+        sbEnableSms.isChecked = SettingUtils.enableSms
     }
 
     //转发通话
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private fun switchEnablePhone(sbEnablePhone: SwitchButton, scbCallType1: SmoothCheckBox, scbCallType2: SmoothCheckBox, scbCallType3: SmoothCheckBox, scbCallType4: SmoothCheckBox, scbCallType5: SmoothCheckBox, scbCallType6: SmoothCheckBox) {
-        sbEnablePhone.isChecked = SettingUtils.enablePhone
         scbCallType1.isChecked = SettingUtils.enableCallType1
         scbCallType2.isChecked = SettingUtils.enableCallType2
         scbCallType3.isChecked = SettingUtils.enableCallType3
@@ -408,7 +416,6 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             }
             SettingUtils.enablePhone = isChecked
             if (isChecked) {
-                //检查权限是否获取
                 XXPermissions.with(this)
                     // 读取电话状态
                     .permission(Permission.READ_PHONE_STATE)
@@ -417,22 +424,23 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     // 读取通话记录
                     .permission(Permission.READ_CALL_LOG)
                     // 读取联系人
-                    .permission(Permission.READ_CONTACTS).request(object : OnPermissionCallback {
+                    .permission(Permission.READ_CONTACTS)
+                    .request(object : OnPermissionCallback {
                         override fun onGranted(permissions: List<String>, all: Boolean) {
-                            if (all) {
-                                XToastUtils.info(R.string.toast_granted_all)
-                            } else {
-                                XToastUtils.info(R.string.toast_granted_part)
+                            Log.d(TAG, "onGranted: permissions=$permissions, all=$all")
+                            if (!all) {
+                                XToastUtils.warning(getString(R.string.forward_calls) + ": " + getString(R.string.toast_granted_part))
                             }
                         }
 
                         override fun onDenied(permissions: List<String>, never: Boolean) {
+                            Log.e(TAG, "onDenied: permissions=$permissions, never=$never")
                             if (never) {
-                                XToastUtils.info(R.string.toast_denied_never)
+                                XToastUtils.error(getString(R.string.forward_calls) + ": " + getString(R.string.toast_denied_never))
                                 // 如果是被永久拒绝就跳转到应用权限系统设置页面
                                 XXPermissions.startPermissionActivity(requireContext(), permissions)
                             } else {
-                                XToastUtils.info(R.string.toast_denied)
+                                XToastUtils.error(getString(R.string.forward_calls) + ": " + getString(R.string.toast_denied))
                             }
                             SettingUtils.enablePhone = false
                             sbEnablePhone.isChecked = false
@@ -440,6 +448,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     })
             }
         }
+        sbEnablePhone.isChecked = SettingUtils.enablePhone
         scbCallType1.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
             SettingUtils.enableCallType1 = isChecked
             if (!isChecked && !SettingUtils.enableCallType1 && !SettingUtils.enableCallType2 && !SettingUtils.enableCallType3 && !SettingUtils.enableCallType4 && !SettingUtils.enableCallType5 && !SettingUtils.enableCallType6) {
@@ -493,34 +502,31 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
     //转发应用通知
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private fun switchEnableAppNotify(sbEnableAppNotify: SwitchButton, scbCancelAppNotify: SmoothCheckBox, scbNotUserPresent: SmoothCheckBox) {
-        val isEnable: Boolean = SettingUtils.enableAppNotify
-        sbEnableAppNotify.isChecked = isEnable
-
-        val layoutOptionalAction: LinearLayout = binding!!.layoutOptionalAction
-        layoutOptionalAction.visibility = if (isEnable) View.VISIBLE else View.GONE
-        //val layoutAppList: LinearLayout = binding!!.layoutAppList
-        //layoutAppList.visibility = if (isEnable) View.VISIBLE else View.GONE
-
         sbEnableAppNotify.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
-            layoutOptionalAction.visibility = if (isChecked) View.VISIBLE else View.GONE
-            //layoutAppList.visibility = if (isChecked) View.VISIBLE else View.GONE
+            binding!!.layoutOptionalAction.visibility = if (isChecked) View.VISIBLE else View.GONE
             SettingUtils.enableAppNotify = isChecked
             if (isChecked) {
-                //检查权限是否获取
-                XXPermissions.with(this).permission(Permission.BIND_NOTIFICATION_LISTENER_SERVICE).request(OnPermissionCallback { _, allGranted ->
-                    if (!allGranted) {
-                        SettingUtils.enableAppNotify = false
-                        sbEnableAppNotify.isChecked = false
-                        XToastUtils.error(R.string.tips_notification_listener)
-                        return@OnPermissionCallback
-                    }
+                XXPermissions.with(this)
+                    .permission(Permission.BIND_NOTIFICATION_LISTENER_SERVICE)
+                    .request(OnPermissionCallback { permissions, allGranted ->
+                        if (!allGranted) {
+                            Log.e(TAG, "onGranted: permissions=$permissions, allGranted=false")
+                            SettingUtils.enableAppNotify = false
+                            sbEnableAppNotify.isChecked = false
+                            XToastUtils.error(R.string.tips_notification_listener)
+                            return@OnPermissionCallback
+                        }
 
-                    SettingUtils.enableAppNotify = true
-                    sbEnableAppNotify.isChecked = true
-                    CommonUtils.toggleNotificationListenerService(requireContext())
-                })
+                        SettingUtils.enableAppNotify = true
+                        sbEnableAppNotify.isChecked = true
+                        CommonUtils.toggleNotificationListenerService(requireContext())
+                    })
             }
         }
+        val isEnable = SettingUtils.enableAppNotify
+        sbEnableAppNotify.isChecked = isEnable
+        binding!!.layoutOptionalAction.visibility = if (isEnable) View.VISIBLE else View.GONE
+
         scbCancelAppNotify.isChecked = SettingUtils.enableCancelAppNotify
         scbCancelAppNotify.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
             SettingUtils.enableCancelAppNotify = isChecked
@@ -531,37 +537,124 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
         }
     }
 
-    //启用定位功能
+    //发现蓝牙设备服务
+    private fun switchEnableBluetooth(@SuppressLint("UseSwitchCompatOrMaterialCode") sbEnableBluetooth: SwitchButton, layoutBluetoothSetting: LinearLayout, xsbScanInterval: XSeekBar, scbIgnoreAnonymous: SmoothCheckBox) {
+        sbEnableBluetooth.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
+            SettingUtils.enableBluetooth = isChecked
+            layoutBluetoothSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
+            if (isChecked) {
+                XXPermissions.with(this)
+                    .permission(Permission.BLUETOOTH_SCAN)
+                    .permission(Permission.BLUETOOTH_CONNECT)
+                    .permission(Permission.BLUETOOTH_ADVERTISE)
+                    .permission(Permission.ACCESS_FINE_LOCATION)
+                    .request(object : OnPermissionCallback {
+                        override fun onGranted(permissions: List<String>, all: Boolean) {
+                            Log.d(TAG, "onGranted: permissions=$permissions, all=$all")
+                            if (!all) {
+                                XToastUtils.warning(getString(R.string.enable_bluetooth) + ": " + getString(R.string.toast_granted_part))
+                            }
+                            restartBluetoothService(ACTION_START)
+                        }
+
+                        override fun onDenied(permissions: List<String>, never: Boolean) {
+                            Log.e(TAG, "onDenied: permissions=$permissions, never=$never")
+                            if (never) {
+                                XToastUtils.error(getString(R.string.enable_bluetooth) + ": " + getString(R.string.toast_denied_never))
+                                // 如果是被永久拒绝就跳转到应用权限系统设置页面
+                                XXPermissions.startPermissionActivity(requireContext(), permissions)
+                            } else {
+                                XToastUtils.error(getString(R.string.enable_bluetooth) + ": " + getString(R.string.toast_denied))
+                            }
+                            SettingUtils.enableBluetooth = false
+                            sbEnableBluetooth.isChecked = false
+                            restartBluetoothService(ACTION_STOP)
+                        }
+                    })
+            } else {
+                restartBluetoothService(ACTION_STOP)
+            }
+        }
+        val isEnable = SettingUtils.enableBluetooth
+        sbEnableBluetooth.isChecked = isEnable
+        layoutBluetoothSetting.visibility = if (isEnable) View.VISIBLE else View.GONE
+
+        //扫描蓝牙设备间隔
+        xsbScanInterval.setDefaultValue((SettingUtils.bluetoothScanInterval / 1000).toInt())
+        xsbScanInterval.setOnSeekBarListener { _: XSeekBar?, newValue: Int ->
+            if (newValue * 1000L != SettingUtils.bluetoothScanInterval) {
+                SettingUtils.bluetoothScanInterval = newValue * 1000L
+                restartBluetoothService()
+            }
+        }
+
+        //是否忽略匿名设备
+        scbIgnoreAnonymous.isChecked = SettingUtils.bluetoothIgnoreAnonymous
+        scbIgnoreAnonymous.setOnCheckedChangeListener { _: SmoothCheckBox, isChecked: Boolean ->
+            SettingUtils.bluetoothIgnoreAnonymous = isChecked
+            restartBluetoothService()
+        }
+
+    }
+
+    //重启蓝牙扫描服务
+    private fun restartBluetoothService(action: String = ACTION_RESTART) {
+        if (!initViewsFinished) return
+        Log.d(TAG, "restartBluetoothService, action: $action")
+        val serviceIntent = Intent(requireContext(), BluetoothScanService::class.java)
+        //如果定位功能已启用，但是系统定位功能不可用，则关闭定位功能
+        if (SettingUtils.enableBluetooth && (!BluetoothUtils.isBluetoothEnabled() || !BluetoothUtils.hasBluetoothCapability(App.context))) {
+            XToastUtils.error(getString(R.string.toast_location_not_enabled))
+            SettingUtils.enableBluetooth = false
+            binding!!.sbEnableBluetooth.isChecked = false
+            binding!!.layoutBluetoothSetting.visibility = View.GONE
+            serviceIntent.action = ACTION_STOP
+        } else {
+            serviceIntent.action = action
+        }
+        requireContext().startService(serviceIntent)
+    }
+
+    //GPS定位服务
     private fun switchEnableLocation(@SuppressLint("UseSwitchCompatOrMaterialCode") sbEnableLocation: SwitchButton, layoutLocationSetting: LinearLayout, rgAccuracy: RadioGroup, rgPowerRequirement: RadioGroup, xsbMinInterval: XSeekBar, xsbMinDistance: XSeekBar) {
-        //是否启用定位功能
-        sbEnableLocation.isChecked = SettingUtils.enableLocation
-        layoutLocationSetting.visibility = if (SettingUtils.enableLocation) View.VISIBLE else View.GONE
         sbEnableLocation.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             SettingUtils.enableLocation = isChecked
             layoutLocationSetting.visibility = if (isChecked) View.VISIBLE else View.GONE
             if (isChecked) {
-                XXPermissions.with(this).permission(Permission.ACCESS_COARSE_LOCATION).permission(Permission.ACCESS_FINE_LOCATION).permission(Permission.ACCESS_BACKGROUND_LOCATION).request(object : OnPermissionCallback {
-                    override fun onGranted(permissions: List<String>, all: Boolean) {
-                        restartLocationService("START")
-                    }
-
-                    override fun onDenied(permissions: List<String>, never: Boolean) {
-                        if (never) {
-                            XToastUtils.error(R.string.toast_denied_never)
-                            // 如果是被永久拒绝就跳转到应用权限系统设置页面
-                            XXPermissions.startPermissionActivity(requireContext(), permissions)
-                        } else {
-                            XToastUtils.error(R.string.toast_denied)
+                XXPermissions.with(this)
+                    .permission(Permission.ACCESS_COARSE_LOCATION)
+                    .permission(Permission.ACCESS_FINE_LOCATION)
+                    .permission(Permission.ACCESS_BACKGROUND_LOCATION)
+                    .request(object : OnPermissionCallback {
+                        override fun onGranted(permissions: List<String>, all: Boolean) {
+                            Log.d(TAG, "onGranted: permissions=$permissions, all=$all")
+                            if (!all) {
+                                XToastUtils.warning(getString(R.string.enable_location) + ": " + getString(R.string.toast_granted_part))
+                            }
+                            restartLocationService(ACTION_START)
                         }
-                        SettingUtils.enableLocation = false
-                        sbEnableLocation.isChecked = false
-                        restartLocationService("STOP")
-                    }
-                })
+
+                        override fun onDenied(permissions: List<String>, never: Boolean) {
+                            Log.e(TAG, "onDenied: permissions=$permissions, never=$never")
+                            if (never) {
+                                XToastUtils.error(getString(R.string.enable_location) + ": " + getString(R.string.toast_denied_never))
+                                // 如果是被永久拒绝就跳转到应用权限系统设置页面
+                                XXPermissions.startPermissionActivity(requireContext(), permissions)
+                            } else {
+                                XToastUtils.error(getString(R.string.enable_location) + ": " + getString(R.string.toast_denied))
+                            }
+                            SettingUtils.enableLocation = false
+                            sbEnableLocation.isChecked = false
+                            restartLocationService(ACTION_STOP)
+                        }
+                    })
             } else {
-                restartLocationService("STOP")
+                restartLocationService(ACTION_STOP)
             }
         }
+        val isEnable = SettingUtils.enableLocation
+        sbEnableLocation.isChecked = isEnable
+        layoutLocationSetting.visibility = if (isEnable) View.VISIBLE else View.GONE
 
         //设置位置精度：高精度（默认）
         rgAccuracy.check(
@@ -623,7 +716,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
     }
 
     //重启定位服务
-    private fun restartLocationService(action: String = "RESTART") {
+    private fun restartLocationService(action: String = ACTION_RESTART) {
         if (!initViewsFinished) return
         Log.d(TAG, "restartLocationService, action: $action")
         val serviceIntent = Intent(requireContext(), LocationService::class.java)
@@ -633,7 +726,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             SettingUtils.enableLocation = false
             binding!!.sbEnableLocation.isChecked = false
             binding!!.layoutLocationSetting.visibility = View.GONE
-            serviceIntent.action = "STOP"
+            serviceIntent.action = ACTION_STOP
         } else {
             serviceIntent.action = action
         }
@@ -643,14 +736,10 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
     //接受短信指令
     @SuppressLint("UseSwitchCompatOrMaterialCode")
     private fun switchEnableSmsCommand(sbEnableSmsCommand: SwitchButton, etSafePhone: EditText) {
-        sbEnableSmsCommand.isChecked = SettingUtils.enableSmsCommand
-        etSafePhone.visibility = if (SettingUtils.enableSmsCommand) View.VISIBLE else View.GONE
-
         sbEnableSmsCommand.setOnCheckedChangeListener { _: CompoundButton?, isChecked: Boolean ->
             SettingUtils.enableSmsCommand = isChecked
             etSafePhone.visibility = if (isChecked) View.VISIBLE else View.GONE
             if (isChecked) {
-                //检查权限是否获取
                 XXPermissions.with(this)
                     // 系统设置
                     .permission(Permission.WRITE_SETTINGS)
@@ -659,22 +748,21 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     // 发送短信
                     .permission(Permission.SEND_SMS)
                     // 读取短信
-                    .permission(Permission.READ_SMS).request(object : OnPermissionCallback {
+                    .permission(Permission.READ_SMS)
+                    .request(object : OnPermissionCallback {
                         override fun onGranted(permissions: List<String>, all: Boolean) {
-                            if (all) {
-                                XToastUtils.info(R.string.toast_granted_all)
-                            } else {
-                                XToastUtils.info(R.string.toast_granted_part)
+                            if (!all) {
+                                XToastUtils.warning(getString(R.string.sms_command) + ": " + getString(R.string.toast_denied_never))
                             }
                         }
 
                         override fun onDenied(permissions: List<String>, never: Boolean) {
                             if (never) {
-                                XToastUtils.info(R.string.toast_denied_never)
+                                XToastUtils.error(getString(R.string.sms_command) + ": " + getString(R.string.toast_denied_never))
                                 // 如果是被永久拒绝就跳转到应用权限系统设置页面
                                 XXPermissions.startPermissionActivity(requireContext(), permissions)
                             } else {
-                                XToastUtils.info(R.string.toast_denied)
+                                XToastUtils.error(getString(R.string.sms_command) + ": " + getString(R.string.toast_denied))
                             }
                             SettingUtils.enableSmsCommand = false
                             sbEnableSmsCommand.isChecked = false
@@ -682,6 +770,9 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                     })
             }
         }
+        val isEnable = SettingUtils.enableSmsCommand
+        sbEnableSmsCommand.isChecked = isEnable
+        etSafePhone.visibility = if (isEnable) View.VISIBLE else View.GONE
 
         etSafePhone.setText(SettingUtils.smsCommandSafePhone)
         etSafePhone.addTextChangedListener(object : TextWatcher {
@@ -954,8 +1045,8 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
                 val notifyContent = etNotifyContent.text.toString().trim()
                 SettingUtils.notifyContent = notifyContent
                 val updateIntent = Intent(context, ForegroundService::class.java)
-                updateIntent.action = "UPDATE_NOTIFICATION"
-                updateIntent.putExtra("UPDATED_CONTENT", notifyContent)
+                updateIntent.action = ACTION_UPDATE_NOTIFICATION
+                updateIntent.putExtra(EXTRA_UPDATE_NOTIFICATION, notifyContent)
                 context?.let { ContextCompat.startForegroundService(it, updateIntent) }
             }
         })
@@ -1057,7 +1148,7 @@ class SettingsFragment : BaseFragment<FragmentSettingsBinding?>(), View.OnClickL
             when (checkedId) {
                 R.id.rb_main_language_auto -> {
                     // 只为了触发onAppLocaleChange
-                    // MultiLanguages.setAppLanguage(context, newLang)
+                    MultiLanguages.setAppLanguage(context, newLang)
                     // SettingUtils.isFlowSystemLanguage = true
                     // 跟随系统
                     MultiLanguages.clearAppLanguage(context)

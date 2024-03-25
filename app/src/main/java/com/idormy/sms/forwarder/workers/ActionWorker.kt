@@ -28,6 +28,7 @@ import com.idormy.sms.forwarder.entity.action.SmsSetting
 import com.idormy.sms.forwarder.entity.action.TaskActionSetting
 import com.idormy.sms.forwarder.service.HttpServerService
 import com.idormy.sms.forwarder.service.LocationService
+import com.idormy.sms.forwarder.utils.ACTION_RESTART
 import com.idormy.sms.forwarder.utils.CacheUtils
 import com.idormy.sms.forwarder.utils.EVENT_ALARM_ACTION
 import com.idormy.sms.forwarder.utils.EVENT_TOAST_ERROR
@@ -139,11 +140,14 @@ class ActionWorker(context: Context, params: WorkerParameters) : CoroutineWorker
 
                     TASK_ACTION_NOTIFICATION -> {
                         val ruleSetting = Gson().fromJson(action.setting, Rule::class.java)
+                        //重新查询发送通道最新设置
+                        val ids = ruleSetting.senderList.joinToString(",") { it.id.toString() }
+                        ruleSetting.senderList = Core.sender.getByIds(ids.split(",").map { it.trim().toLong() }, ids)
                         //自动任务的不需要吐司或者更新日志，特殊处理 logId = -1，msgId = -1
                         SendUtils.sendMsgSender(msgInfo, ruleSetting, 0, -1L, -1L)
 
                         successNum++
-                        writeLog(String.format(getString(R.string.successful_execution), ruleSetting.name), "SUCCESS")
+                        writeLog(String.format(getString(R.string.successful_execution), ruleSetting.getName()), "SUCCESS")
                     }
 
                     TASK_ACTION_CLEANER -> {
@@ -200,7 +204,7 @@ class ActionWorker(context: Context, params: WorkerParameters) : CoroutineWorker
 
                         if (settingsSetting.enableLocation) {
                             val serviceIntent = Intent(App.context, LocationService::class.java)
-                            serviceIntent.action = "RESTART"
+                            serviceIntent.action = ACTION_RESTART
                             App.context.startService(serviceIntent)
                         }
 

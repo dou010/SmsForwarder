@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.text.TextUtils
 import com.google.gson.Gson
 import com.idormy.sms.forwarder.App
+import com.idormy.sms.forwarder.App.Companion.CALL_TYPE_MAP
 import com.idormy.sms.forwarder.R
 import com.idormy.sms.forwarder.utils.AppUtils
 import com.idormy.sms.forwarder.utils.BatteryUtils
@@ -32,17 +33,6 @@ data class MsgInfo(
     var uid: Int = 0, //APP通知的UID
 ) : Serializable {
 
-    //通话类型：1.来电挂机 2.去电挂机 3.未接来电 4.来电提醒 5.来电接通 6.去电拨出
-    private val callTypeMap = mapOf(
-        //"0" to getString(R.string.unknown_call),
-        "1" to getString(R.string.incoming_call_ended),
-        "2" to getString(R.string.outgoing_call_ended),
-        "3" to getString(R.string.missed_call),
-        "4" to getString(R.string.incoming_call_received),
-        "5" to getString(R.string.incoming_call_answered),
-        "6" to getString(R.string.outgoing_call_started),
-    )
-
     val titleForSend = getTitleForSend()
 
     val smsVoForSend = getContentForSend()
@@ -58,7 +48,11 @@ data class MsgInfo(
         var customSmsTemplate: String = getString(R.string.tag_from).toString() + "\n" +
                 getString(R.string.tag_sms) + "\n" +
                 getString(R.string.tag_card_slot) + "\n" +
-                (if (type == "app") "" else "SubId：${getString(R.string.tag_card_subid)}\n") +
+                when (type) {
+                    "sms", "call" -> "SubId：${getString(R.string.tag_card_subid)}\n"
+                    "app" -> "UID：${getString(R.string.tag_uid)}\n"
+                    else -> ""
+                } +
                 getString(R.string.tag_receive_time) + "\n" +
                 getString(R.string.tag_device_name)
 
@@ -84,24 +78,19 @@ data class MsgInfo(
 
     @SuppressLint("SimpleDateFormat")
     fun replaceTemplate(template: String, regexReplace: String, needJson: Boolean = false): String {
-        val splitSimInfo = simInfo.split("#####")
-        val title = splitSimInfo.getOrElse(0) { simInfo }
-        val scheme = splitSimInfo.getOrElse(1) { "" }
-
         return template.replaceTag(getString(R.string.tag_from), from, needJson)
             .replaceTag(getString(R.string.tag_package_name), from, needJson)
             .replaceTag(getString(R.string.tag_sms), content, needJson)
             .replaceTag(getString(R.string.tag_msg), content, needJson)
-            .replaceTag(getString(R.string.tag_card_slot), title, needJson)
+            .replaceTag(getString(R.string.tag_card_slot), simInfo, needJson)
             .replaceTag(getString(R.string.tag_card_subid), subId.toString(), needJson)
-            .replaceTag(getString(R.string.tag_title), title, needJson)
-            .replaceTag(getString(R.string.tag_scheme), scheme, needJson)
+            .replaceTag(getString(R.string.tag_title), simInfo, needJson)
             .replaceTag(getString(R.string.tag_uid), uid.toString(), needJson)
             .replaceTag(getString(R.string.tag_receive_time), SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date), needJson)
             .replaceTag(getString(R.string.tag_current_time), SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date()), needJson)
             .replaceTag(getString(R.string.tag_device_name), extraDeviceMark.trim(), needJson)
             .replaceTag(getString(R.string.tag_app_version), AppUtils.getAppVersionName(), needJson)
-            .replaceTag(getString(R.string.tag_call_type), callTypeMap[callType.toString()] ?: getString(R.string.unknown_call), needJson)
+            .replaceTag(getString(R.string.tag_call_type), CALL_TYPE_MAP[callType.toString()] ?: getString(R.string.unknown_call), needJson)
             .replaceTag(getString(R.string.tag_ipv4), TaskUtils.ipv4, needJson)
             .replaceTag(getString(R.string.tag_ipv6), TaskUtils.ipv6, needJson)
             .replaceTag(getString(R.string.tag_battery_pct), "%.2f".format(TaskUtils.batteryPct), needJson)
